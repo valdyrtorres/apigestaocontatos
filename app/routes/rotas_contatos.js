@@ -55,6 +55,7 @@ router.get('/contatos', function(req, res) {
 });
 
 // 3) Método: Buscar contato por nome ==> GET http://localhost:8000/apigestaocontatos/contatos/:contato_nome
+/*
 router.get('/contatos/:contato_nome', function(req, res) {
     var db = require("../models/contato");
     var Contatos = db.Mongoose.model('Contatos', db.ContatoSchema, 'Contatos');
@@ -68,9 +69,10 @@ router.get('/contatos/:contato_nome', function(req, res) {
     });
 
 });
+*/
 
  // 4) Método: Buscar contato por id ==> GET http://localhost:8000/apigestaocontatos/contatos/:contato_id
- router.get('/contatos/buscaporid/:contato_id', function(req, res) {
+ router.get('/contatos/:contato_id', function(req, res) {
     var db = require("../models/contato");
     var Contatos = db.Mongoose.model('Contatos', db.ContatoSchema, 'Contatos');
 
