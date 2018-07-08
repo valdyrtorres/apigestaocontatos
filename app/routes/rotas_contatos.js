@@ -10,18 +10,13 @@ router.get('/', function(req, res, next) {
 router.post('/contatos', function (req, res) {
 
     var db = require("../models/contato");
-    //var contatoNome = req.body.nome;
-    //var contatoCanal = req.body.canal;
-    //var contatoValor = req.body.valor;
-    //var contatoObs = req.body.obs;
-
     var Contatos = db.Mongoose.model('Contatos', db.ContatoSchema, 'Contatos');
-    //var contato = new Contatos({ nome: contatoNome, canal: contatoCanal, valor: contatoValor, obs: contatoObs});
     var contato = new Contatos(req.body);
 
     contato.save(function (err) {
         if (err) {
             console.log("Error! " + err.message);
+            res.status(400);
             res.send('Erro ao adicionar o Contato....: ' + error);
             return err;
         } else {
@@ -30,13 +25,6 @@ router.post('/contatos', function (req, res) {
             console.log("Contato adicionado!");
         }
     });
-             
-    /*
-    res.json({
-        response: 'a POST request for CREATING questions',
-        body: req.body
-    });
-    */
 
 });    
 
@@ -62,7 +50,14 @@ router.get('/contatos', function(req, res) {
 
     var query = {}
     if(pageNo < 0 || pageNo === 0) {
+        res.status(400);
         response = {"error" : true,"message" : "número de página inválido, você deve iniciar com 1"};
+        return res.json(response)
+    }
+
+    if(size < 0 || size === 0) {
+        res.status(400);
+        response = {"error" : true,"message" : "size inválido"};
         return res.json(response)
     }
     
@@ -70,37 +65,34 @@ router.get('/contatos', function(req, res) {
     query.limit = size
 
     Contatos.find({},{},query,function(err,data) {
-    // Mongo command to fetch all data from collection.
+
         if(err) {
+            res.status(404);
             response = {"error" : true,"message" : "Erro ao buscar os dados"};
         } else {
+            res.status(200);
             response = {"error" : false,"message" : data};
         }
         res.json(response);
     });
 
-    /*
-    Contatos.find().lean().exec(function (err, contatos) {
-       if(err)
-           res.send('Erro ao selecionar todos os contatos:' + err);
-       else 
-           res.json(contatos);
-    });
-    */
-
 });
 
-// 3) Método: Buscar contato por nome ==> GET http://localhost:8000/apigestaocontatos/contatos/?busca=:contato_nome
-router.get('/contatos/?busca=:contato_nome', function(req, res) {
+// 3) Método: Buscar contato por nome ==> GET http://localhost:8000/apigestaocontatos/contatos/busca=:contato_nome
+router.get('/contatos/busca=:contato_nome', function(req, res) {
     var db = require("../models/contato");
     var Contatos = db.Mongoose.model('Contatos', db.ContatoSchema, 'Contatos');
     var query = { nome : { '$regex' : req.params.contato_nome } };
 
     Contatos.find(query, function (err, contato) {
-        if(err)
+        if(err) {
+           res.status(404);
            res.send('Contato não encontrado:' + err);
-        else
+        }
+        else {
+           res.status(200);
            res.json(contato);
+        }
     });
     
 
@@ -112,13 +104,19 @@ router.get('/contatos/?busca=:contato_nome', function(req, res) {
     var Contatos = db.Mongoose.model('Contatos', db.ContatoSchema, 'Contatos');
 
     Contatos.findById(req.params.contato_id, function (err, contato) {
-       if(err) 
+       if(err) {
+           res.status(404);
            res.send('Contato não encontrado:' + err);
+       }
        else  {
-           if (contato === null)
+           if (contato === null) {
+              res.status(404);
               res.send('Contato não encontrado.');
-           else
+           }
+           else {
+              res.status(200);
               res.json(contato);
+           }
        }
     });
 
@@ -128,16 +126,35 @@ router.get('/contatos/?busca=:contato_nome', function(req, res) {
  router.delete('/contatos/:contato_id', function(req, res) {
     var db = require("../models/contato");
     var Contatos = db.Mongoose.model('Contatos', db.ContatoSchema, 'Contatos');
-    
-    Contatos.remove({
-       _id: req.params.contato_id
-       },function(err) {
-           if(err)
-              res.send('Contato não encontrado:' + err);
-           else
-              res.json({ message: 'Contato excluído!'});
-       }
-    );
+
+    Contatos.findById(req.params.contato_id, function (err, contato) {
+        if(err) {
+            res.status(404);
+            res.send('Contato não encontrado:' + err);
+        }
+        else  {
+            if (contato === null) {
+               res.status(404);
+               res.send('Contato não encontrado.');
+            }
+            else {
+               Contatos.remove({
+                _id: req.params.contato_id
+                },function(err) {
+                    if(err) {
+                       res.status(404);
+                       res.send('Contato não encontrado:' + err);
+                    }
+                    else {
+                       console.log('Contato excluído!');
+                       res.status(204);
+                       res.json({ message: 'Contato excluído!' });
+                    }
+                }
+             );
+            }
+        }
+     });
 
 });
 
@@ -151,8 +168,10 @@ router.put('/contatos/:contato_id', function(req, res) {
           res.send('Contato não encontrado:' + err);
        }
        else {
-          if (contato === null)
+          if (contato === null) {
+             res.status(204);
              res.send('Contato não existe!');
+          }
           else {
              contato.nome = req.body.nome;
              contato.canal = req.body.canal;
@@ -160,9 +179,15 @@ router.put('/contatos/:contato_id', function(req, res) {
              contato.obs = req.body.obs;
 
              contato.save(function(err) {
-                if(err)
+                if(err) {
+                   res.status(400);
                    res.send('Erro ao atualizar o contato:' + err);
-                else res.json({ message: 'Contato atualizado!'});
+                }
+                else {
+                    console.log('Contato atualizado!');
+                    res.status(204);
+                    res.json({ message: 'Contato atualizado!'});
+                }
              });
           }
        }

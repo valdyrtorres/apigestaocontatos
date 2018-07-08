@@ -14,30 +14,30 @@ var urlBase = "http://localhost:8000/apigestaocontatos/contatos";
 var server = supertest.agent(urlBase);
 var idContato = "";
 
-describe("Teste apiBackend apistarwars POST /contatos",function(){
+describe("Teste apigestaocontatos POST /contatos",function(){
   this.timeout(15000);
 
   it("1 - Teste adicionar um contato com /apigestaocontatos/contatos",function(done){
     server.post('/')
     .send({
-      nome : 'Angelina Jolie',
-      canal : 'novo canal',
+      nome : 'Camila Pitanga',
+      canal : 'email',
       valor : '1000',
-      obs: 'Filme TombRaider'
+      obs: 'Estrelou novela Velho Chico'
     })
     .expect("Content-type",/json/)
-    .expect(200)
+    .expect(201)
     .end(function(err,res){
-      res.status.should.equal(200);
+      res.status.should.equal(201);
       res.body.should.have.property('message');
-      res.body.message.should.equal('Contatos adicionado!');
+      res.body.message.should.equal('Contato adicionado!');
       done();
     });
   });
 
 });
 
-describe("Teste apiBackend apigestaocontatos GET",function(){
+describe("Teste apigestaocontatos GET",function(){
     this.timeout(15000);
 
     // Teste lista contatos
@@ -66,10 +66,10 @@ describe("Teste apiBackend apigestaocontatos GET",function(){
     });
   
     // Teste buscar contato por nome
-    it("3 - Buscar contato por nome. Ex: Buscar contato Angelina Jolie",function(done){
+    it("3 - Buscar contato por nome. Ex: Buscar contato Camila Pitanga",function(done){
       request.get(
         {
-          url : urlBase + "/Angelina Jolie" 
+          url : urlBase + "/busca=Camila Pitanga" 
         },
         function(error, response, body){
   
@@ -85,11 +85,11 @@ describe("Teste apiBackend apigestaocontatos GET",function(){
           expect(response.statusCode).to.equal(200);
   
           if(_body[0].should.have.property('nome')){
-            expect(_body[0].nome).to.equal('Angelina Jolie');
+            expect(_body[0].nome).to.equal('Camila Pitanga');
           }
 
           if(_body[0].should.have.property('_id')){
-            idPlaneta = _body[0]._id;
+            idContato = _body[0]._id;
           }
   
           done(); 
@@ -98,10 +98,10 @@ describe("Teste apiBackend apigestaocontatos GET",function(){
     });
 
     // Teste buscar contato por id
-    it("4 - Buscar contato por id. Ex: Buscar pelo id do contato AngelinaJolie",function(done){
+    it("4 - Buscar contato por id. Ex: Buscar pelo id do contato Camila Pitanga",function(done){
       request.get(
         {
-          url : urlBase + "/buscaporid/" + idContato 
+          url : urlBase + "/" + idContato 
         },
         function(error, response, body){
   
@@ -131,14 +131,12 @@ describe("Teste apigestaocontatos DELETE /contatos",function(){
   this.timeout(15000);
 
   // Teste deletar contato por id
-  it("5 - Deletar contato por id. Ex: Deletar pelo id do contato Angelina Jolie",function(done){
+  it("5 - Deletar contato por id. Ex: Deletar pelo id do contato Camila Pitanga",function(done){
     server.delete('/' + idContato).end(function(error, res) {
       if (error) {
         throw error;
       }
-      expect(res.statusCode).to.equal(200);
-      res.body.should.have.property('message');
-      res.body.message.should.equal('Contato excluído!');
+      expect(res.statusCode).to.equal(204);
       done();
     });
   });
