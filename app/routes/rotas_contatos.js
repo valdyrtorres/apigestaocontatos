@@ -1,9 +1,77 @@
 // routes/rotas_contatos.js
 var express = require('express');
 var router = express.Router();
+var jwt = require('jsonwebtoken');
+var app = express();
 
 router.get('/', function(req, res, next) {
     res.send('Bem-vindo a ApiGestaoContatos!');
+});
+
+// rota: /authenticate: http://localhost:8000/apigestaocontatos/authenticate
+router.post('/authenticate', function(req, res) {
+    var Usuario = require('../models/usuario');
+    
+    // busca o usuário
+    Usuario.findOne({
+       nome: req.body.nome 
+    }, function(error, usuario) {
+        if(error)
+            throw error;
+
+        if(!usuario) {
+            res.json({ success: false, message: 'Autenticação do Usuário falhou. Usuário não encontrado!' });
+        } else if (usuario) {
+
+            //Aqui iremos verificar se a senha bate com o que está cadastrado no banco:
+            if(usuario.senha != req.body.senha) {
+                res.json({ success: false, message: 'Autenticação do Usuário falhou. Senha incorreta!' });
+            } else {
+                // caso a senha do usuário seja encontrada.... iremos criar um token:
+                //var token = jwt.sign(usuario, app.get('superNode-auth'), {
+                //    expiresIn: 1440*60 //o token irá expirar em 24 horas
+                //});
+
+                var token = jwt.sign(usuario, '123456', {
+                    expiresIn: 60 * 24 // expires in 24 hours
+                });
+
+                //Aqui iremos retornar a informação do token via JSON:
+                res.json({
+                    success: true,
+                    message: 'Token criado!!!',
+                    token: token
+                });
+            }
+        }
+    });
+});
+
+// rota middleware para poder verificar e autenticar o token
+router.use(function(req, res, next) {
+
+    var token = req.body.token || req.query.token || req.headers['x-access-token'];
+
+    if(token) {
+        //jwt.verify(token, app.get('superNode-auth'), function(err, decoded) {   
+        jwt.verify(token, '123456', function(err, decoded) {   
+            if (err) {
+                res.status(401);
+                return res.json({ success: false, message: 'Falha ao tentar autenticar o token!' });    
+            } else {
+            //se tudo correr bem, salver a requisição para o uso em outras rotas
+            req.decoded = decoded;    
+            next();
+            }
+        });
+
+        } else {
+        // se não tiver o token, retornar o erro 403
+        return res.status(403).send({ 
+            success: false, 
+            message: 'Não há token.' 
+        });       
+    }
 });
 
 // 1) Método: Adicionar um contato ==> POST http://localhost:8000/apigestaocontatos/contatos)  

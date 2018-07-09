@@ -12,6 +12,7 @@ var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
 var indexRouter = require('./app/routes/index'); // Rotas da Api
+var indexRouterAdmin = require('./app/routes/rotas_usuarios'); // Rotas admin da Api
 var Contato = require('./app/models/contato'); // Conexão com o banco
 
 // Configuração do app para usar o bodyParser()
@@ -20,6 +21,7 @@ app.use(bodyParser.json());
 
 // Rotas da Api
 app.use('/apigestaocontatos', indexRouter);
+app.use('/apigestaocontatosadmin', indexRouterAdmin);
 
 // End Rotas
 
