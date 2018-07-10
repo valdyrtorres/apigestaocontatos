@@ -20,11 +20,13 @@ router.post('/authenticate', function(req, res) {
             throw error;
 
         if(!usuario) {
+            res.status(401);
             res.json({ success: false, message: 'Autenticação do Usuário falhou. Usuário não encontrado!' });
         } else if (usuario) {
 
             //Aqui iremos verificar se a senha bate com o que está cadastrado no banco:
             if(usuario.senha != req.body.senha) {
+                res.status(401);
                 res.json({ success: false, message: 'Autenticação do Usuário falhou. Senha incorreta!' });
             } else {
                 // caso a senha do usuário seja encontrada.... iremos criar um token:
@@ -37,6 +39,7 @@ router.post('/authenticate', function(req, res) {
                 });
 
                 //Aqui iremos retornar a informação do token via JSON:
+                res.status(200);
                 res.json({
                     success: true,
                     message: 'Token criado!!!',
